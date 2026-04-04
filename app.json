@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "my_app",
-    "slug": "my_app",
+    "name": "Feed Bolt",
+    "slug": "feed_bolt",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "feedbolt",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
