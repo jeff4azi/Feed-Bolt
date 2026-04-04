@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { FlatList, Image, Pressable, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { mockPosts, mockUser } from '../../data/mockData';
 import PostCard from '../components/PostCard';
-import { mockPosts, mockUser } from '../data/mockData';
 
 const userPosts = mockPosts.filter((p) => p.userId === 'u1');
 

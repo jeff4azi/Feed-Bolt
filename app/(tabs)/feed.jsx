@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, StatusBar, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { mockPosts, mockUser } from '../../data/mockData';
 import PostCard from '../components/PostCard';
-import { mockPosts } from '../data/mockData';
 
 export default function FeedScreen() {
   const router = useRouter();

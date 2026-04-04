@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Pressable, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,9 +27,11 @@ export default function AuthScreen() {
       <View className="flex-1 justify-center items-center px-8">
         {/* Logo area */}
         <View className="items-center mb-16">
-          <View className="w-20 h-20 rounded-2xl bg-[#121218] items-center justify-center mb-6 border border-purple-900">
-            <Text className="text-4xl">⚡</Text>
-          </View>
+          <Image
+            source={require('../assets/images/FeedBolt.png')}
+            className="w-24 h-24 mb-6"
+            resizeMode="contain"
+          />
           <Text className="text-white text-5xl font-bold tracking-tight">FeedBolt</Text>
           <Text className="text-gray-500 text-base mt-3 text-center">
             Your feed, supercharged.

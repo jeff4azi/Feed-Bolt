@@ -3,6 +3,28 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
+function PostImage({ uri }) {
+  const [height, setHeight] = useState(200);
+
+  return (
+    <View
+      className="w-full rounded-xl mb-4 overflow-hidden"
+      onLayout={(e) => {
+        const containerWidth = e.nativeEvent.layout.width;
+        Image.getSize(uri, (w, h) => {
+          setHeight((h / w) * containerWidth);
+        });
+      }}
+    >
+      <Image
+        source={{ uri }}
+        style={{ width: '100%', height }}
+        resizeMode="cover"
+      />
+    </View>
+  );
+}
+
 export default function PostCard({ post }) {
   const router = useRouter();
   const [liked, setLiked] = useState(post.liked);
@@ -36,14 +58,7 @@ export default function PostCard({ post }) {
       <Text className="text-gray-200 text-sm leading-5 mb-4">{post.content}</Text>
 
       {/* Post image */}
-      {post.image && (
-        <Image
-          source={{ uri: post.image }}
-          className="w-full rounded-xl mb-4"
-          style={{ height: 200 }}
-          resizeMode="cover"
-        />
-      )}
+      {post.image && <PostImage uri={post.image} />}
 
       {/* Actions */}
       <View className="flex-row items-center gap-5">

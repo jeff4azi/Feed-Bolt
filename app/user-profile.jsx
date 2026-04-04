@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlatList, Image, Pressable, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { mockPosts } from '../data/mockData';
 import PostCard from './components/PostCard';
-import { mockPosts } from './data/mockData';
 
 // Mock data for other users
 const otherUsers = {

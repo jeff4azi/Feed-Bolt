@@ -3,8 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, StatusBar, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { mockComments, mockPosts, mockUser } from '../data/mockData';
 import CommentItem from './components/CommentItem';
-import { mockComments, mockPosts, mockUser } from './data/mockData';
 
 export default function PostDetailScreen() {
   const router = useRouter();
