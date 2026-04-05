@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { FlatList, Image, Pressable, StatusBar, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, FlatList, Image, Pressable, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { mockPosts, mockUser } from '../../data/mockData';
 import PostCard from '../components/PostCard';
@@ -8,6 +9,41 @@ import PostCard from '../components/PostCard';
 export default function FeedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [refreshing, setRefreshing] = useState(false);
+  const spinAnim = useRef(new Animated.Value(0)).current;
+  const spinLoop = useRef(null);
+
+  useEffect(() => {
+    if (refreshing) {
+      spinLoop.current = Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 700,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      spinLoop.current.start();
+    } else {
+      spinLoop.current?.stop();
+      spinAnim.setValue(0);
+    }
+  }, [refreshing]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1500);
+  };
+
+  const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+
+  const RefreshIndicator = () => (
+    <View style={{ alignItems: 'center', paddingVertical: 12 }}>
+      <Animated.View style={{ transform: [{ rotate: spin }] }}>
+        <Ionicons name="reload" size={22} color="#a855f7" />
+      </Animated.View>
+    </View>
+  );
 
   return (
     <View className="flex-1 bg-[#0B0B0F]" style={{ paddingTop: insets.top }}>
@@ -41,9 +77,14 @@ export default function FeedScreen() {
         renderItem={({ item }) => <PostCard post={item} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 8, paddingBottom: 100 }}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
         ListHeaderComponent={
-          <View className="px-4 mb-4">
-            <Text className="text-gray-500 text-xs uppercase tracking-widest">Latest Posts</Text>
+          <View>
+            {refreshing && <RefreshIndicator />}
+            <View className="px-4 mb-4">
+              <Text className="text-gray-500 text-xs uppercase tracking-widest">Latest Posts</Text>
+            </View>
           </View>
         }
       />

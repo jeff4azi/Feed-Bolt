@@ -1,8 +1,9 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { Pressable, StatusBar, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { useAuth } from '../context/AuthContext';
 
 const GoogleIcon = () => (
   <Svg width={20} height={20} viewBox="0 0 24 24">
@@ -14,11 +15,19 @@ const GoogleIcon = () => (
 );
 
 export default function AuthScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signInWithGoogle } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const handleGoogleSignIn = () => {
-    router.replace('/(tabs)/feed');
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      await signInWithGoogle();
+    } catch (err) {
+      Alert.alert('Sign in failed', err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,14 +75,18 @@ export default function AuthScreen() {
             ]}
             className="flex-row items-center justify-center bg-white rounded-2xl h-[64px] shadow-xl"
           >
-            {/* Colorful Google SVG Icon */}
-            <View style={{ marginRight: 12 }}>
-              <GoogleIcon />
-            </View>
-
-            <Text style={{ color: '#0B0B0F', fontWeight: 'bold', fontSize: 18 }}>
-              Sign in with Google
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#0B0B0F" />
+            ) : (
+              <>
+                <View style={{ marginRight: 12 }}>
+                  <GoogleIcon />
+                </View>
+                <Text style={{ color: '#0B0B0F', fontWeight: 'bold', fontSize: 18 }}>
+                  Sign in with Google
+                </Text>
+              </>
+            )}
           </Pressable>
 
           <Text className="text-gray-500 text-xs text-center mt-10 leading-5 px-6">

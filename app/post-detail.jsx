@@ -69,6 +69,13 @@ export default function PostDetailScreen() {
                 </View>
               </View>
               <Text className="text-gray-200 text-base leading-6 mb-4">{post.content}</Text>
+              {post.image && (
+                <Image
+                  source={{ uri: post.image }}
+                  style={{ width: '100%', aspectRatio: 16 / 9, borderRadius: 12, marginBottom: 16 }}
+                  resizeMode="cover"
+                />
+              )}
               <View className="flex-row items-center gap-5 pt-3 border-t border-gray-800">
                 <Pressable onPress={() => setLiked(!liked)} className="flex-row items-center gap-1.5">
                   <Ionicons
