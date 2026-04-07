@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CommentItem from './components/CommentItem';
+import ImageViewer from './components/ImageViewer';
+import { PostDetailSkeleton } from './components/Skeleton';
 
 export default function PostDetailScreen() {
   const router = useRouter();
@@ -17,6 +19,8 @@ export default function PostDetailScreen() {
   const [commentText, setCommentText] = useState('');
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchLikes = useCallback(async () => {
     const { data, count } = await supabase
@@ -47,6 +51,7 @@ export default function PostDetailScreen() {
       .eq('id', postId)
       .single();
     if (data) setPost(data);
+    setLoading(false);
   }, [postId]);
 
   const fetchComments = useCallback(async () => {
@@ -107,7 +112,7 @@ export default function PostDetailScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
         ListHeaderComponent={
-          post ? (
+          loading ? <PostDetailSkeleton /> : post ? (
             <View>
               <View className="bg-[#121218] rounded-2xl p-4 my-4">
                 <View className="flex-row items-center mb-3">
@@ -127,7 +132,9 @@ export default function PostDetailScreen() {
                 </View>
                 <Text className="text-gray-200 text-base leading-6 mb-4">{post.content}</Text>
                 {imageUri && (
-                  <Image source={{ uri: imageUri }} style={{ width: '100%', aspectRatio: 16 / 9, borderRadius: 12, marginBottom: 16 }} resizeMode="cover" />
+                  <Pressable onPress={() => setImageViewerOpen(true)}>
+                    <Image source={{ uri: imageUri }} style={{ width: '100%', aspectRatio: 16 / 9, borderRadius: 12, marginBottom: 16 }} resizeMode="cover" />
+                  </Pressable>
                 )}
                 <View className="flex-row items-center gap-5 pt-3 border-t border-gray-800">
                   <Pressable onPress={handleLike} className="flex-row items-center gap-1.5">
@@ -173,6 +180,9 @@ export default function PostDetailScreen() {
           <Ionicons name="send" size={20} color={commentText.trim().length > 0 ? '#a855f7' : '#374151'} />
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
-  );
+
+      {imageUri && (
+        <ImageViewer uri={imageUri} visible={imageViewerOpen} onClose={() => setImageViewerOpen(false)} />
+      )}
+    </KeyboardAvoidingView>  );
 }

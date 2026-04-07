@@ -7,12 +7,18 @@ import { supabase } from '../../lib/supabase';
 
 function PostImage({ uri }) {
   const [height, setHeight] = useState(200);
+
+  const MAX_HEIGHT = 700;
+
   return (
     <View
       className="w-full rounded-xl mb-4 overflow-hidden"
       onLayout={(e) => {
         const containerWidth = e.nativeEvent.layout.width;
-        Image.getSize(uri, (w, h) => setHeight((h / w) * containerWidth));
+        Image.getSize(uri, (w, h) => {
+          const natural = (h / w) * containerWidth;
+          setHeight(Math.min(natural, MAX_HEIGHT));
+        });
       }}
     >
       <Image source={{ uri }} style={{ width: '100%', height }} resizeMode="cover" />

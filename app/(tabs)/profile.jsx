@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import PostCard from '../components/PostCard';
+import { PostCardSkeleton, ProfileSkeleton } from '../components/Skeleton';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -13,16 +14,24 @@ export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [{ data: profileData }, { data: postsData }] = await Promise.all([
+    const [{ data: profileData }, { data: postsData }, { count: followers }, { count: followingC }] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('posts').select('*, profiles(id, fullname, username, avatar_url), comments(count)')
         .eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', user.id),
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', user.id),
     ]);
     if (profileData) setProfile(profileData);
     if (postsData) setPosts(postsData);
+    setFollowerCount(followers ?? 0);
+    setFollowingCount(followingC ?? 0);
+    setLoading(false);
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -62,42 +71,51 @@ export default function ProfileScreen() {
       </View>
 
       <FlatList
-        data={posts}
+        data={loading ? [] : posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} currentUserId={user?.id} onRefresh={fetchData} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         ListHeaderComponent={
           <View>
-            <View className="items-center px-4 py-6">
-              {avatar ? (
-                <Image source={{ uri: avatar }} className="w-24 h-24 rounded-full border-2 border-purple-600" />
-              ) : (
-                <View className="w-24 h-24 rounded-full border-2 border-purple-600 bg-[#1a1a2e] items-center justify-center">
-                  <Ionicons name="person" size={40} color="#a855f7" />
+            {loading ? <ProfileSkeleton /> : (
+              <View className="items-center px-4 py-6">
+                {avatar ? (
+                  <Image source={{ uri: avatar }} className="w-24 h-24 rounded-full border-2 border-purple-600" />
+                ) : (
+                  <View className="w-24 h-24 rounded-full border-2 border-purple-600 bg-[#1a1a2e] items-center justify-center">
+                    <Ionicons name="person" size={40} color="#a855f7" />
+                  </View>
+                )}
+                <Text className="text-white text-xl font-bold mt-4">{displayName}</Text>
+                {username ? <Text className="text-purple-400 text-sm mt-1">@{username}</Text> : null}
+                {user?.email && <Text className="text-gray-500 text-xs mt-1">{user.email}</Text>}
+                <View className="flex-row gap-8 mt-6">
+                  <View className="items-center">
+                    <Text className="text-white font-bold text-lg">{posts.length}</Text>
+                    <Text className="text-gray-500 text-xs">Posts</Text>
+                  </View>
+                  <View className="items-center">
+                    <Text className="text-white font-bold text-lg">{followerCount}</Text>
+                    <Text className="text-gray-500 text-xs">Followers</Text>
+                  </View>
+                  <View className="items-center">
+                    <Text className="text-white font-bold text-lg">{followingCount}</Text>
+                    <Text className="text-gray-500 text-xs">Following</Text>
+                  </View>
                 </View>
-              )}
-              <Text className="text-white text-xl font-bold mt-4">{displayName}</Text>
-              {username ? <Text className="text-purple-400 text-sm mt-1">@{username}</Text> : null}
-              {user?.email && <Text className="text-gray-500 text-xs mt-1">{user.email}</Text>}
-
-              <View className="flex-row gap-8 mt-6">
-                <View className="items-center">
-                  <Text className="text-white font-bold text-lg">{posts.length}</Text>
-                  <Text className="text-gray-500 text-xs">Posts</Text>
-                </View>
+                <Pressable
+                  onPress={() => router.push('/edit-profile')}
+                  className="mt-5 px-8 py-2.5 border border-gray-700 rounded-full"
+                >
+                  <Text className="text-gray-300 text-sm font-medium">Edit Profile</Text>
+                </Pressable>
               </View>
-
-              <Pressable
-                onPress={() => router.push('/edit-profile')}
-                className="mt-5 px-8 py-2.5 border border-gray-700 rounded-full"
-              >
-                <Text className="text-gray-300 text-sm font-medium">Edit Profile</Text>
-              </Pressable>
-            </View>
+            )}
 
             <View className="border-t border-gray-800 mx-4 mb-4" />
             <Text className="text-gray-500 text-xs uppercase tracking-widest px-4 mb-3">Posts</Text>
+            {loading && [1, 2].map((i) => <PostCardSkeleton key={i} />)}
           </View>
         }
         ListEmptyComponent={

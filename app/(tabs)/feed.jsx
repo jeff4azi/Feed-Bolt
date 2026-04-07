@@ -6,12 +6,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import PostCard from '../components/PostCard';
+import { PostCardSkeleton } from '../components/Skeleton';
 
 export default function FeedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const spinAnim = useRef(new Animated.Value(0)).current;
   const spinLoop = useRef(null);
@@ -22,6 +24,7 @@ export default function FeedScreen() {
       .select('*, profiles(id, fullname, username, avatar_url), comments(count)')
       .order('created_at', { ascending: false });
     if (!error) setPosts(data ?? []);
+    setLoading(false);
   }, []);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
@@ -76,7 +79,7 @@ export default function FeedScreen() {
       </View>
 
       <FlatList
-        data={posts}
+        data={loading ? [] : posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} currentUserId={user?.id} onRefresh={fetchPosts} />}
         showsVerticalScrollIndicator={false}
@@ -95,10 +98,11 @@ export default function FeedScreen() {
             <View className="px-4 mb-4">
               <Text className="text-gray-500 text-xs uppercase tracking-widest">Latest Posts</Text>
             </View>
+            {loading && [1, 2, 3].map((i) => <PostCardSkeleton key={i} />)}
           </View>
         }
         ListEmptyComponent={
-          <Text className="text-gray-600 text-center mt-12">No posts yet. Be the first!</Text>
+          !loading && <Text className="text-gray-600 text-center mt-12">No posts yet. Be the first!</Text>
         }
       />
     </View>
