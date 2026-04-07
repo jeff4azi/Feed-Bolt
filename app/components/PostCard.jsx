@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 
 function PostImage({ uri }) {
   const [height, setHeight] = useState(200);
-  const MAX_HEIGHT = 400;
+  const MAX_HEIGHT = 600;
   return (
     <View
       className="w-full rounded-xl mb-4 overflow-hidden"
