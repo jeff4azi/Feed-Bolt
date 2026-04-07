@@ -61,7 +61,11 @@ export default function CreatePostScreen() {
   return (
     <View className="flex-1 bg-[#0B0B0F]" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <StatusBar barStyle="light-content" backgroundColor="#0B0B0F" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+        className="flex-1"
+      >
 
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-800">
           <Pressable onPress={() => router.back()}>
