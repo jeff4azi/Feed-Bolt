@@ -86,7 +86,7 @@ export default function PostDetailScreen() {
   const profile = post?.profiles;
   const avatar = profile?.avatar_url;
   const username = profile?.username ?? profile?.fullname ?? 'Unknown';
-  const imageUri = post?.public_url ?? post?.image_url;
+  const imageUri = post?.image_url;
   const userAvatar = user?.user_metadata?.avatar_url;
 
   return (

@@ -3,11 +3,12 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Image, Modal, Pressable, Text, View } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import { deletePostImage, getOptimizedImageUrl } from '../../lib/imageUtils';
 import { supabase } from '../../lib/supabase';
 
 function PostImage({ uri }) {
   const [height, setHeight] = useState(200);
-  const MAX_HEIGHT = 650;
+  const MAX_HEIGHT = 750;
   return (
     <View
       className="w-full rounded-xl mb-4 overflow-hidden"
@@ -24,10 +25,17 @@ function PostImage({ uri }) {
   );
 }
 
-function OwnerMenu({ postId, content, onDeleted }) {
+function OwnerMenu({ post, onDeleted, onDeletingChange }) {
   const router = useRouter();
+  const postId = post.id;
   const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const setDeletingState = (val) => {
+    setDeleting(val);
+    onDeletingChange?.(val);
+  };
 
   const show = () => {
     setOpen(true);
@@ -41,21 +49,36 @@ function OwnerMenu({ postId, content, onDeleted }) {
     });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     hide(async () => {
-      await supabase.from('posts').delete().eq('id', postId);
-      onDeleted?.();
+      setDeletingState(true);
+      try {
+        if (post?.image_public_id) {
+          await deletePostImage(postId).catch(() => {});
+        }
+        await supabase.from('posts').delete().eq('id', postId);
+        onDeleted?.();
+      } finally {
+        setDeletingState(false);
+      }
     });
   };
 
   const handleEdit = () => {
-    hide(() => router.push({ pathname: '/edit-post', params: { postId, content } }));
+    hide(() => router.push({ pathname: '/edit-post', params: { postId, content: post.content } }));
   };
 
   return (
     <>
-      <Pressable onPress={show} hitSlop={8}>
-        <Ionicons name="ellipsis-horizontal" size={18} color="#6b7280" />
+      <Pressable onPress={show} hitSlop={8} disabled={deleting}>
+        {deleting ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="trash-outline" size={14} color="#ef4444" />
+            <Text style={{ color: '#ef4444', fontSize: 11 }}>Deleting...</Text>
+          </View>
+        ) : (
+          <Ionicons name="ellipsis-horizontal" size={18} color="#6b7280" />
+        )}
       </Pressable>
 
       <Modal visible={open} transparent animationType="none" onRequestClose={() => hide()}>
@@ -64,9 +87,7 @@ function OwnerMenu({ postId, content, onDeleted }) {
             style={{
               opacity: fadeAnim,
               position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: 0, left: 0, right: 0,
               backgroundColor: '#121218',
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
@@ -105,12 +126,13 @@ export default function PostCard({ post, currentUserId, onRefresh, showOwnerActi
   const avatar = profile?.avatar_url;
   const username = profile?.username ?? profile?.fullname ?? 'Unknown';
   const timestamp = new Date(post.created_at).toLocaleDateString();
-  const imageUri = post.public_url ?? post.image_url;
+  const imageUri = post.image_url ? getOptimizedImageUrl(post.image_url) : null;
   const commentCount = post.comments?.[0]?.count ?? 0;
   const isOwner = showOwnerActions && user?.id === post.user_id;
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -150,6 +172,7 @@ export default function PostCard({ post, currentUserId, onRefresh, showOwnerActi
     <Pressable
       onPress={() => router.push({ pathname: '/post-detail', params: { postId: post.id } })}
       className="bg-[#121218] rounded-2xl p-4 mb-3 mx-4"
+      style={{ opacity: isOwner && deleting ? 0.4 : 1 }}
     >
       <View className="flex-row items-center mb-3">
         <Pressable onPress={handleAvatarPress}>
@@ -165,7 +188,7 @@ export default function PostCard({ post, currentUserId, onRefresh, showOwnerActi
           <Text className="text-white font-semibold text-sm">{username}</Text>
           <Text className="text-gray-500 text-xs">{timestamp}</Text>
         </View>
-        {isOwner && <OwnerMenu postId={post.id} content={post.content} onDeleted={onRefresh} />}
+        {isOwner && <OwnerMenu post={post} onDeleted={onRefresh} onDeletingChange={setDeleting} />}
       </View>
 
       <Text className="text-gray-200 text-sm leading-5 mb-4">{post.content}</Text>
