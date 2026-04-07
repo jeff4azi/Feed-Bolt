@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Alert,
     Image,
@@ -22,12 +22,23 @@ export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
-  const [displayName, setDisplayName] = useState(user?.user_metadata?.full_name ?? '');
-  const [username, setUsername] = useState(user?.user_metadata?.username ?? '');
-  const [bio, setBio] = useState(user?.user_metadata?.bio ?? '');
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatar, setAvatar] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const avatar = user?.user_metadata?.avatar_url;
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
+      if (data) {
+        setDisplayName(data.fullname ?? '');
+        setUsername(data.username ?? '');
+        setBio(data.bio ?? '');
+        setAvatar(data.avatar_url ?? user?.user_metadata?.avatar_url ?? null);
+      }
+    });
+  }, [user]);
 
   const handleSave = async () => {
     if (!displayName.trim()) {
@@ -36,13 +47,11 @@ export default function EditProfileScreen() {
     }
     setSaving(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          full_name: displayName.trim(),
-          username: username.trim(),
-          bio: bio.trim(),
-        },
-      });
+      const { error } = await supabase.from('profiles').update({
+        fullname: displayName.trim(),
+        username: username.trim(),
+        bio: bio.trim(),
+      }).eq('id', user.id);
       if (error) throw error;
       router.back();
     } catch (err) {
@@ -57,7 +66,6 @@ export default function EditProfileScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#0B0B0F" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
 
-        {/* Header */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-800">
           <Pressable onPress={() => router.back()}>
             <Ionicons name="close" size={24} color="white" />
@@ -71,7 +79,6 @@ export default function EditProfileScreen() {
         </View>
 
         <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
-          {/* Avatar */}
           <View className="items-center py-6">
             {avatar ? (
               <Image source={{ uri: avatar }} className="w-24 h-24 rounded-full border-2 border-purple-600" />
@@ -85,7 +92,6 @@ export default function EditProfileScreen() {
             </Pressable>
           </View>
 
-          {/* Fields */}
           <View className="px-4 gap-5">
             <Field label="Display Name" value={displayName} onChangeText={setDisplayName} placeholder="Your name" />
             <Field label="Username" value={username} onChangeText={setUsername} placeholder="@username" autoCapitalize="none" />
@@ -100,7 +106,6 @@ export default function EditProfileScreen() {
             />
             <Text className="text-gray-600 text-xs text-right -mt-3">{bio.length}/160</Text>
 
-            {/* Email (read-only) */}
             <View>
               <Text className="text-gray-500 text-xs mb-1.5 uppercase tracking-wider">Email</Text>
               <View className="bg-[#1a1a2e] rounded-xl px-4 py-3">

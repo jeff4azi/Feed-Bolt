@@ -1,81 +1,80 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, Pressable, StatusBar, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { mockPosts } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 import PostCard from './components/PostCard';
-
-// Mock data for other users
-const otherUsers = {
-  u2: { displayName: 'Sara UI', username: 'sara_ui', avatar: 'https://i.pravatar.cc/150?img=5', bio: 'UI/UX designer & React Native dev 🎨', followers: 3820, following: 210 },
-  u3: { displayName: 'Jay Codes', username: 'code_with_jay', avatar: 'https://i.pravatar.cc/150?img=8', bio: 'TypeScript evangelist. Open source contributor 💻', followers: 9100, following: 540 },
-  u4: { displayName: 'Mia Builds', username: 'mia.builds', avatar: 'https://i.pravatar.cc/150?img=9', bio: 'Mobile-first everything. Expo fan 📱', followers: 5430, following: 320 },
-  u5: { displayName: 'Tom Dev', username: 'devtom_', avatar: 'https://i.pravatar.cc/150?img=12', bio: 'Ship fast, learn faster 🚀', followers: 14200, following: 890 },
-};
 
 export default function UserProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { userId } = useLocalSearchParams();
+  const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
 
-  const user = otherUsers[userId];
-  const userPosts = mockPosts.filter((p) => p.userId === userId);
+  const fetchData = useCallback(async () => {
+    const [{ data: profileData }, { data: postsData }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', userId).single(),
+      supabase.from('posts').select('*, profiles(id, fullname, username, avatar_url), comments(count)')
+        .eq('user_id', userId).order('created_at', { ascending: false }),
+    ]);
+    if (profileData) setProfile(profileData);
+    if (postsData) setPosts(postsData);
+  }, [userId]);
 
-  if (!user) {
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  if (!profile) {
     return (
       <View className="flex-1 bg-[#0B0B0F] items-center justify-center" style={{ paddingTop: insets.top }}>
-        <Text className="text-gray-500">User not found.</Text>
+        <Text className="text-gray-500">Loading...</Text>
       </View>
     );
   }
+
+  const displayName = profile.fullname ?? 'Unknown';
+  const username = profile.username ?? '';
+  const avatar = profile.avatar_url;
 
   return (
     <View className="flex-1 bg-[#0B0B0F]" style={{ paddingTop: insets.top }}>
       <StatusBar barStyle="light-content" backgroundColor="#0B0B0F" />
 
-      {/* Header */}
       <View className="flex-row items-center px-4 py-3">
         <Pressable onPress={() => router.back()} className="mr-3">
           <Ionicons name="arrow-back" size={22} color="white" />
         </Pressable>
-        <Text className="text-white text-lg font-semibold">@{user.username}</Text>
+        <Text className="text-white text-lg font-semibold">{username ? `@${username}` : displayName}</Text>
       </View>
 
       <FlatList
-        data={userPosts}
+        data={posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         ListHeaderComponent={
           <View>
-            {/* Profile info */}
             <View className="items-center px-4 py-6">
-              <Image
-                source={{ uri: user.avatar }}
-                className="w-24 h-24 rounded-full border-2 border-purple-600"
-              />
-              <Text className="text-white text-xl font-bold mt-4">{user.displayName}</Text>
-              <Text className="text-purple-400 text-sm mt-1">@{user.username}</Text>
-              <Text className="text-gray-400 text-sm text-center mt-3 leading-5">{user.bio}</Text>
+              {avatar ? (
+                <Image source={{ uri: avatar }} className="w-24 h-24 rounded-full border-2 border-purple-600" />
+              ) : (
+                <View className="w-24 h-24 rounded-full border-2 border-purple-600 bg-[#1a1a2e] items-center justify-center">
+                  <Ionicons name="person" size={40} color="#a855f7" />
+                </View>
+              )}
+              <Text className="text-white text-xl font-bold mt-4">{displayName}</Text>
+              {username ? <Text className="text-purple-400 text-sm mt-1">@{username}</Text> : null}
+              {profile.bio ? <Text className="text-gray-400 text-sm text-center mt-3 leading-5">{profile.bio}</Text> : null}
 
-              {/* Stats */}
               <View className="flex-row gap-8 mt-6">
                 <View className="items-center">
-                  <Text className="text-white font-bold text-lg">{userPosts.length}</Text>
+                  <Text className="text-white font-bold text-lg">{posts.length}</Text>
                   <Text className="text-gray-500 text-xs">Posts</Text>
-                </View>
-                <View className="items-center">
-                  <Text className="text-white font-bold text-lg">{user.followers.toLocaleString()}</Text>
-                  <Text className="text-gray-500 text-xs">Followers</Text>
-                </View>
-                <View className="items-center">
-                  <Text className="text-white font-bold text-lg">{user.following}</Text>
-                  <Text className="text-gray-500 text-xs">Following</Text>
                 </View>
               </View>
 
-              {/* Follow button */}
               <Pressable className="mt-5 px-10 py-2.5 bg-purple-600 rounded-full">
                 <Text className="text-white text-sm font-semibold">Follow</Text>
               </Pressable>
