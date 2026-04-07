@@ -50,7 +50,7 @@ export default function AuthScreen() {
         <View className="items-center">
           <View className="bg-[#16161E] p-6 rounded-[32px] mb-8 border border-gray-800/50 shadow-2xl">
             <Image
-              source={require('../assets/images/FeedBolt.png')}
+              source={require('../assets/images/FeedBolt.jpg')}
               style={{ width: 80, height: 80 }}
               contentFit="contain"
             />

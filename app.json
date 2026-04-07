@@ -4,7 +4,7 @@
     "slug": "feed_bolt",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/FeedBolt.png",
+    "icon": "./assets/images/FeedBolt.jpg",
     "scheme": "feedbolt",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0B0B0F",
-        "foregroundImage": "./assets/images/FeedBolt.png"
+        "foregroundImage": "./assets/images/FeedBolt.jpg"
       },
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "pan",
@@ -31,7 +31,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/FeedBolt.png",
+      "favicon": "./assets/images/FeedBolt.jpg",
       "bundler": "metro"
     },
     "plugins": [
@@ -40,7 +40,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/FeedBolt.png",
+          "image": "./assets/images/FeedBolt.jpg",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#0B0B0F",
