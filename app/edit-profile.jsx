@@ -2,16 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StatusBar,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
@@ -87,9 +87,6 @@ export default function EditProfileScreen() {
                 <Ionicons name="person" size={40} color="#a855f7" />
               </View>
             )}
-            <Pressable className="mt-2">
-              <Text className="text-purple-400 text-sm">Change photo</Text>
-            </Pressable>
           </View>
 
           <View className="px-4 gap-5">

@@ -90,6 +90,7 @@ export default function ProfileScreen() {
                 <Text className="text-white text-xl font-bold mt-4">{displayName}</Text>
                 {username ? <Text className="text-purple-400 text-sm mt-1">@{username}</Text> : null}
                 {user?.email && <Text className="text-gray-500 text-xs mt-1">{user.email}</Text>}
+                {profile?.bio ? <Text className="text-gray-400 text-sm text-center mt-3 leading-5 px-4">{profile.bio}</Text> : null}
                 <View className="flex-row gap-8 mt-6">
                   <View className="items-center">
                     <Text className="text-white font-bold text-lg">{posts.length}</Text>
