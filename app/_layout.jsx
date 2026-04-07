@@ -14,11 +14,11 @@ function RootNavigator() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
+    const inAuthScreen = segments[0] === 'auth';
 
-    if (!session && inAuthGroup) {
+    if (!session && !inAuthScreen) {
       router.replace('/auth');
-    } else if (session && !inAuthGroup) {
+    } else if (session && inAuthScreen) {
       router.replace('/(tabs)/feed');
     }
   }, [session, loading, segments]);
@@ -30,6 +30,7 @@ function RootNavigator() {
       <Stack.Screen name="post-detail" options={{ headerShown: false }} />
       <Stack.Screen name="create-post" options={{ headerShown: false }} />
       <Stack.Screen name="user-profile" options={{ headerShown: false }} />
+      <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
     </Stack>
   );
 }

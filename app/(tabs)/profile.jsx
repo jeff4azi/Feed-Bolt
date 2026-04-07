@@ -14,20 +14,26 @@ export default function ProfileScreen() {
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    Alert.alert('Sign out', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await signOut();
-          } catch (err) {
-            Alert.alert('Error', err.message);
-          }
-        },
-      },
-    ]);
+    const doSignOut = async () => {
+      try {
+        await signOut();
+        router.replace('/auth');
+      } catch (err) {
+        Alert.alert('Error', err.message);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      // web — use native browser confirm
+      if (window.confirm('Are you sure you want to sign out?')) {
+        doSignOut();
+      }
+    } else {
+      Alert.alert('Sign out', 'Are you sure?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign out', style: 'destructive', onPress: doSignOut },
+      ]);
+    }
   };
 
   const displayName = user?.user_metadata?.full_name ?? user?.email ?? 'User';
@@ -84,7 +90,10 @@ export default function ProfileScreen() {
               </View>
 
               {/* Edit profile button */}
-              <Pressable className="mt-5 px-8 py-2.5 border border-gray-700 rounded-full">
+              <Pressable
+                onPress={() => router.push('/edit-profile')}
+                className="mt-5 px-8 py-2.5 border border-gray-700 rounded-full"
+              >
                 <Text className="text-gray-300 text-sm font-medium">Edit Profile</Text>
               </Pressable>
             </View>
