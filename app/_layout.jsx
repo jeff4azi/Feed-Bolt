@@ -31,6 +31,7 @@ function RootNavigator() {
       <Stack.Screen name="create-post" options={{ headerShown: false }} />
       <Stack.Screen name="user-profile" options={{ headerShown: false }} />
       <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+      <Stack.Screen name="edit-post" options={{ headerShown: false }} />
     </Stack>
   );
 }

@@ -1,15 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Image, Modal, Pressable, Text, View } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
 function PostImage({ uri }) {
   const [height, setHeight] = useState(200);
-
-  const MAX_HEIGHT = 700;
-
+  const MAX_HEIGHT = 400;
   return (
     <View
       className="w-full rounded-xl mb-4 overflow-hidden"
@@ -26,7 +24,81 @@ function PostImage({ uri }) {
   );
 }
 
-export default function PostCard({ post, currentUserId, onRefresh }) {
+function OwnerMenu({ postId, content, onDeleted }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const show = () => {
+    setOpen(true);
+    Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+  };
+
+  const hide = (cb) => {
+    Animated.timing(fadeAnim, { toValue: 0, duration: 100, useNativeDriver: true }).start(() => {
+      setOpen(false);
+      cb?.();
+    });
+  };
+
+  const handleDelete = async () => {
+    hide(async () => {
+      await supabase.from('posts').delete().eq('id', postId);
+      onDeleted?.();
+    });
+  };
+
+  const handleEdit = () => {
+    hide(() => router.push({ pathname: '/edit-post', params: { postId, content } }));
+  };
+
+  return (
+    <>
+      <Pressable onPress={show} hitSlop={8}>
+        <Ionicons name="ellipsis-horizontal" size={18} color="#6b7280" />
+      </Pressable>
+
+      <Modal visible={open} transparent animationType="none" onRequestClose={() => hide()}>
+        <Pressable style={{ flex: 1 }} onPress={() => hide()}>
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: '#121218',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              paddingBottom: 32,
+              paddingTop: 8,
+            }}
+          >
+            <View style={{ width: 36, height: 4, backgroundColor: '#374151', borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
+
+            <Pressable
+              onPress={handleEdit}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 16, gap: 14 }}
+            >
+              <Ionicons name="create-outline" size={22} color="#a855f7" />
+              <Text style={{ color: 'white', fontSize: 16 }}>Edit post</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleDelete}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 16, gap: 14 }}
+            >
+              <Ionicons name="trash-outline" size={22} color="#ef4444" />
+              <Text style={{ color: '#ef4444', fontSize: 16 }}>Delete post</Text>
+            </Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
+export default function PostCard({ post, currentUserId, onRefresh, showOwnerActions }) {
   const router = useRouter();
   const { user } = useAuth();
   const profile = post.profiles;
@@ -35,13 +107,13 @@ export default function PostCard({ post, currentUserId, onRefresh }) {
   const timestamp = new Date(post.created_at).toLocaleDateString();
   const imageUri = post.public_url ?? post.image_url;
   const commentCount = post.comments?.[0]?.count ?? 0;
+  const isOwner = showOwnerActions && user?.id === post.user_id;
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-    // fetch like count and whether current user liked this post
     supabase
       .from('likes')
       .select('user_id', { count: 'exact' })
@@ -93,6 +165,7 @@ export default function PostCard({ post, currentUserId, onRefresh }) {
           <Text className="text-white font-semibold text-sm">{username}</Text>
           <Text className="text-gray-500 text-xs">{timestamp}</Text>
         </View>
+        {isOwner && <OwnerMenu postId={post.id} content={post.content} onDeleted={onRefresh} />}
       </View>
 
       <Text className="text-gray-200 text-sm leading-5 mb-4">{post.content}</Text>

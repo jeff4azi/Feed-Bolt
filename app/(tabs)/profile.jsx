@@ -73,7 +73,7 @@ export default function ProfileScreen() {
       <FlatList
         data={loading ? [] : posts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PostCard post={item} currentUserId={user?.id} onRefresh={fetchData} />}
+        renderItem={({ item }) => <PostCard post={item} currentUserId={user?.id} onRefresh={fetchData} showOwnerActions />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         ListHeaderComponent={
